@@ -1,0 +1,249 @@
+<nav class="navbar navbar-inverse">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>                        
+      </button>
+            <a class="navbar-brand" href="#">EmmaFoulger School</a>
+        </div>
+        <div class="collapse navbar-collapse" id="myNavbar">
+            <ul class="nav navbar-nav">
+                <li class="active"><a href="#banner">Banner</a></li>
+                <li class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#gallery">Gallery<span class="caret"></span></a>
+                    <ul class="dropdown-menu gallerymenus">
+                    </ul>
+                </li>
+                <li><a href="#announcements">Announcements</a></li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="logout"><span class="glyphicon glyphicon-log-in"></span> Logout</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+    <div>
+        <h3 class="grouptitle"> Banner </h3>
+        <button type="button" class="btn btn-info btn-lg uploadfile" style="float:right; margin:5px" data-toggle="modal" data-target="#myModal">Upload</button>
+        <button type="button" class="btn btn-info btn-lg  saveannouncement" style="float:right; margin:5px; display:none">Save</button>
+    </div>
+    <div class="modal fade" id="myModal" role="dialog">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Upload File</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="upload_form" method="POST" action="api/upload" enctype="multipart/form-data">
+                        <input type="file" name="fileToUpload" id="fileToUpload" />
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <!-- <button type="button" class="btn btn-default" data-dismiss="modal">Close</button> -->
+                    <button type="button" id="submitForm" class="btn btn-default" data-dismiss="modal">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br/>
+    <br/>
+    <br/>
+    <div class="medicontent">
+
+    </div>
+</div>
+<script>
+    var action = "banner";
+    $(document).ready(function () {
+        getBanners();
+        $("li a").click(function () {
+            var href = $(this).attr('href');
+            if (href == '#banner') {
+                $('.uploadfile').show();
+                $('.saveannouncement').hide();
+                action = "banner";
+                 $('.grouptitle').text("Banner");
+                getBanners();
+            }
+            else if (href == "#gallery") {
+                $('.uploadfile').show();
+                $('.saveannouncement').hide();
+                action = "gallery";
+                getGallery();
+            }
+            else {
+                $('.uploadfile').hide();
+                $('.saveannouncement').show();
+                action = "announcement";
+                getAnnouncements();
+            }
+        });
+
+        $("#upload_form").on("submit", function (e) {            
+            var fileToUpload= $('#fileToUpload')[0].files[0];
+            var formData = new FormData();
+            formData.append('fileToUpload', fileToUpload);
+            var formURL = "/api/upload?action="+action ; //$(this).attr("action");
+            $.ajax({
+                url: formURL,
+                type: "POST",
+                data: formData,
+                cache:false,
+                contentType: false,
+                processData: false,
+                success: function(data, textStatus, jqXHR) {
+                    if (action == "banner") {
+                         getBanners();
+                    }
+                    else {
+                        var indx = action.indexOf("/");
+                        var menuname = action.substr(indx+1);
+                        showGalleryMenuItems(menuname);
+                    }                   
+                },
+                error: function(jqXHR, status, error) {                  
+                }
+            });
+            e.preventDefault();
+        });
+
+        $("#submitForm").click(function () {
+            $("#upload_form").submit();
+        });
+
+
+    });
+
+    function getBanners() {
+        $(".medicontent").html('');
+        $.get("/api/banners", function (data) {
+            var banners = data;
+            banners.forEach(function (banner, index) {
+                var img = $("<img></img>").attr("src", banner).attr("style", "width:100%; height: 300px;");
+                var spn = $("<span>x</span>").attr("id","delfile");
+                spn.click(function() {
+                    deleteBanner(banner)
+                });
+                var divitem = $("<div> </div>").addClass("item");
+                divitem.append(spn);
+                divitem.append(img);
+                $(".medicontent").append(divitem);          
+            }, this);
+        });
+    }
+
+    function deleteBanner(filepath) {
+        $.ajax({
+            url: "/api/deletefile?filepath="+filepath,
+            type: "DELETE",
+            success: function(data, textStatus, jqXHR) {
+                getBanners();
+            },
+            error: function(jqXHR, status, error) {                  
+            }
+        });
+    }
+
+     function getGallery() {
+        $(".gallerymenus").html('');
+        $.get("/api/gallery", function (data) {
+            var menus = Object.keys(data);
+            menus.forEach(function (menuname, index) {
+                var a = $("<a></a>").attr("id",menuname);
+                a.attr("href","#"+menuname);
+                a.text(menuname);
+                var li = $("<li></li>").append(a);
+                a.click(function() {
+                   action = action + "/" + menuname;
+                   $('.grouptitle').text(menuname);
+                   showGalleryItems(data[menuname]);
+                })
+                $(".gallerymenus").append(li);
+            });
+        });
+    }
+
+    function showGalleryMenuItems(menuname) {
+        $(".gallerymenus").html('');
+        $.get("/api/gallery", function (data) {
+             $('.grouptitle').text(menuname);
+            showGalleryItems(data[menuname]);
+        });
+    }
+
+    function showGalleryItems(items) {
+        $(".medicontent").html('');
+        var divcontainer = $("<div> </div>").addClass("row-fluid");
+        $(".medicontent").append(divcontainer);
+        items.forEach(function (item, index) {
+                var img = $("<img></img>").attr("src", item).attr("style", "margin: 5px; width:100px; height: 100px;");
+                var spn = $("<span>x</span>").attr("id","delfile");
+                spn.click(function() {
+                    deleteGalleryItem(item,items,index)
+                });
+                var divitem = $("<div> </div>").addClass("col-sm-3");
+                divitem.append(spn);
+                divitem.append(img);
+                divcontainer.append(divitem);   
+            }, this);
+    }
+
+    function deleteGalleryItem(filepath,items, index) {
+        $.ajax({
+            url: "/api/deletefile?filepath="+filepath,
+            type: "DELETE",
+            success: function(data, textStatus, jqXHR) {
+                items.splice(index,1);
+                showGalleryItems(items);
+            },
+            error: function(jqXHR, status, error) {                  
+            }
+        });
+    }
+
+    function getAnnouncements() {
+        $('.grouptitle').text("Announcements");        
+        $('.saveannouncement').click(function() {
+            postAnnouncements();
+        });
+        $(".medicontent").html('');
+        $.get("/api/events", function (data) {
+            data.values.forEach(function (item, index) {
+                var divitem = $("<div> </div>").addClass("item");
+                var txtarea = $("<textarea rows='4' cols='150'> </textarea>");
+                txtarea.text(item);
+                divitem.append(txtarea);
+                $(".medicontent").append(divitem);
+            });           
+        });        
+    }
+
+    function postAnnouncements() {
+        var posts = [];
+        $('textarea').each(function () {
+            posts.push(this.value);
+        });
+        var postData = {};
+        postData["values"] = posts;
+        //alert(JSON.stringify(postData));
+         $.ajax({
+            url: "api/events",
+            type: "POST",
+            data: JSON.stringify(postData),
+            processData: false,
+            contentType: "application/json",
+            success: function(data, textStatus, jqXHR) {
+                alert("post success");
+            },
+            error: function(jqXHR, status, error) {    
+                    alert("post failed");              
+            }
+        });
+    }
+</script>       

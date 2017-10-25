@@ -1,0 +1,94 @@
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <title>Emma Foulger School</title>
+  <link rel="stylesheet" href="./css/custom-styles.css">
+  <link rel="stylesheet" href="./css/extra.css">
+  <link rel="stylesheet" href="./css/gallery-grid.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+
+  <script>
+    $(document).ready(function () {
+      $.get("/api/banners", function (data) {
+        var banners = data;
+        banners.forEach(function (banner, index) {
+
+          var img = $("<img></img>").attr("src", banner).attr("style", "width:100%; height: 300px;");
+
+          if (index == 0) {
+            var divitem = $("<div> </div>").addClass("item active").append(img);
+            $("#c1").append(divitem);
+          } else {
+            var divitem = $("<div> </div>").addClass("item").append(img);
+            $("#c1").append(divitem);
+          }
+
+        }, this);
+      });
+      $.get("/api/events", function (data) {
+        var events = data.values;
+        events.forEach(function (event) {
+         // var txt = $("<p></p>").attr("style", "float:right;color:red;").append(events.date);
+          var marqueeitem = $("<p> </p>").append(event);
+          $("#m1").append(marqueeitem);
+
+
+        }, this);
+      });
+
+      $.get("/api/gallery", function (data) {
+        Object.keys(data).forEach(function (key, index) {
+          var a = $("<a></a>").attr("href", "#tab" + index).attr("data-toggle", "pill");
+          a.text(key);
+          var li = $("<li></li>");
+          if (index == 0) {
+            li.addClass("active");
+          }
+          li.append(a);
+          $("#tabs").append(li);
+
+
+          var divitem1 = $("<div> </div>").addClass("row").attr("id", "rr" + index);
+          var divitem2 = $("<div> </div>").addClass("tz-gallery").append(divitem1);
+          var divitem3 = $("<div> </div>").addClass("container gallery-container").append(divitem2);
+          if (index == 0) { 
+
+          var divitem4 = $("<div> </div>").addClass("tab-pane active").attr("id" + index, "tab" + index).append(divitem3);
+
+
+          } else {
+            var divitem4 = $("<div> </div>").addClass("tab-pane").attr("id", "tab" + index).append(divitem3);
+          }
+
+          $("#tabcontents").append(divitem4);
+
+
+          var pics = data[key];
+          pics.forEach(function (pic) {
+            var img = $("<img></img>").attr("src", pic);
+            var a1 = $("<a></a>").attr("href", pic).addClass("lightbox").append(img);
+            var divitem = $("<div> </div>").addClass("col-sm-6 col-md-4").append(a1);
+            $(document).ready(function () {
+              $(divitem).appendTo("#rr" + index);
+            });
+
+
+          }, this);
+
+
+        }, this);
+      });
+
+      var pathname = window.location.pathname;
+	    $('.navbar-center > li > a[href="'+pathname+'"]').parent().addClass('active');
+    });
+
+
+  
+  </script>
+</head>

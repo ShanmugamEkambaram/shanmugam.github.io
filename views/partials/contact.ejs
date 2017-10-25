@@ -1,0 +1,36 @@
+<div id="content">
+    <div class="container" style="text-align:center;">
+        <h4>You are most welcome to Contact Us.</h4>
+        <h4>Your queries may kindly be sent to :</h4>
+        <br>
+        <h4>The Headmaster </h4>
+        <h4>Emma Foulger Matriculation Higher Secondary School</h4>
+        <h4>33, West Cott Road, Royapettah</h4>
+        <h4>Chennai 600 014</h4>
+        <br>
+        <h4>Ph : 044 - 2851 5572</h4>
+        <h4>Email : efmhss@gmail.com</h4>
+
+        <h3>Google Maps Address</h3>
+
+        <div id="map"></div>
+
+
+        <script>
+            function initMap() {
+                var uluru = { lat: 13.056620, lng: 80.264266 };
+                var map = new google.maps.Map(document.getElementById('map'), {
+                    zoom: 17,
+                    center: uluru
+                });
+                var marker = new google.maps.Marker({
+                    position: uluru,
+                    map: map
+                });
+            }
+        </script>
+        <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDlX5TrAh_-nElPdKkodV0rUkw9Ed_ug6Y&callback=initMap">
+
+        </script>
+    </div>
+</div>
